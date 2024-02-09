@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="/static/index.css" rel="stylesheet" type="text/css">
+    <title>Video Stream Client</title>
+</head>
+<body>
+
+<div class="container mx-auto inset-0">
+    <input id="url" type="text" placeholder="Use a link to an image or a youtube video" />
+    <input type="button" id="predictButton" value="Predict">
+    <details>
+        <summary>
+            Result
+            <span class="icon">▼</span>
+        </summary>
+        <video id="videoPlayer" controls class="w-full"></video>
+    </details>
+    <details>
+        <summary>
+            Logs
+            <span class="icon">▼</span>
+        </summary>
+        <div class="container mx-auto px-4 full-height">
+            <textarea class="full-width-height" id="logs" rows="100" readonly></textarea>
+        </div>
+    </details>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/jquery-websocket/jquery.websocket-0.0.1.js"></script>
+<script src="/client/video-stream-client.js"></script>
+
+</body>
+</html>

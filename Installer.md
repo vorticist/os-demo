@@ -1,0 +1,9 @@
+- Install Kubernetes & kubectl
+  - Load docker images into cluster (`kind load`)
+- helm 3
+  - Add helm repo for (helm repo add <NAME> <URL>):
+    - MetalLB: `metallb https://metallb.github.io/metallb` 
+    - LabelStudio: `heartex https://charts.heartex.com/`
+    - JupyterHub: `jupyterhub https://hub.jupyter.org/helm-chart/`
+  - Helm install metallb ``
+  - 
