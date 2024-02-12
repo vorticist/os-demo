@@ -214,6 +214,8 @@ Add the following code after the helm chart for Labels Studio in the `ai-iac.go`
 ```
 If we generate the k8s files again and apply them to the cluste (`cdk8s synth` and `kubectl apply`), we'll notice that it will only add resources related to jupyter hub and did not perform any changes to our previously defined resources. This is because k8s applies manifest changes incrementaly, detecting changes directly from the yaml files and only modifying resources that are new or have changes in their definitions.
 
+- Image here
+
 If we instead destroy our cluster and generate a new one to apply the changes to, we'll see that it will create all of the resources from the beggining.
 
 ### Dataset tagging and model training
@@ -223,6 +225,35 @@ If we instead destroy our cluster and generate a new one to apply the changes to
 - Use a python script to fine tune the model using the dataset
 
 ### Add Custom Serving app
+When your done fine-tunning your model, you'll want to serve it, for that we can add a deployment and a service to our cluster. We'll use a docker image to run a custom app that will use our model to detect objects from images or video.
+
+Our custom app will be consisting of a front end application and a rest api server to consume the model as defined in the `Dockerfile`
+``` dockerfile
+FROM golang:alpine3.19 as builder
+COPY . /server
+WORKDIR /server
+
+RUN go build -o server .
+RUN ls
+
+FROM ultralytics/ultralytics:latest as yolov8
+WORKDIR /server
+COPY --from=builder /server/server .
+COPY --from=builder /server/client ./client
+COPY --from=builder /server/static ./static
+
+RUN ls
+
+
+ENV TZ=US/Pacific
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt update && apt upgrade -y
+RUN conda update -y ffmpeg
+
+ENTRYPOINT [ "/server/server" ]
+```
+Underneath, YoloV8 uses `ffmpeg` to process video, so we need to make sure that it's added in the `Dockerfile`
 - Explain server functionality and dockerization
 - Add registry secrets to iac chart and explain image loading for pods
 - Add custom app deployment and service for consumption.
