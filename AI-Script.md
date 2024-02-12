@@ -33,7 +33,11 @@ The way a workflow looks for this use case is as follows:
 - Docker
 - npm & [cdk8s](https://cdk8s.io/docs/latest/cli/installation/) cli
 - If running on custom hardware outside a cloud provider, the cluster most likely will need to have installed a custom load balancer. K3s comes with it's own load balancer preinstalled, but for this demo we'll be using [MetalLB](https://metallb.universe.tf/installation/#installation-with-helm).
-
+- Presentation setup:
+  - `kind create cluster --config cluster/kind-config.yaml`
+  - `kind load docker-image aiarkusnexus/opensource-demo-be:latest`
+  - `kubectl apply -f dist/0000-network-setup.k8s.yaml`
+  - `kubectl apply -f dist/0001-metallb-config.k8s.yaml`
 ## Steps
 ### CDK8s IaC project setup
 The first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). CDK8S is inspired by AWS' CDK, but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a k8s cluster accessible with kubectl. 
@@ -221,11 +225,21 @@ If we instead destroy our cluster and generate a new one to apply the changes to
 ### Dataset tagging and model training
 - Showcase LabelStudio and create a small sample dataset with tags
 - create a jupyter notebook and install ultralytics
-- Import dataset created in LabelStudio 
+
+```
+pip install ultralytics 
+pip install opencv-python-headless
+```
+``` python
+from ultralytics import YOLO
+
+model = YOLO('yolov8n.pt') 
+results = model.train(data='coco128.yaml', epochs=3, imgsz=640)
+```
 - Use a python script to fine tune the model using the dataset
 
 ### Add Custom Serving app
-When your done fine-tunning your model, you'll want to serve it, for that we can add a deployment and a service to our cluster. We'll use a docker image to run a custom app that will use our model to detect objects from images or video.
+When you're done fine-tuning your model, you'll want to serve it, for that we can use a kubernetes deployment with a service. We'll also use a docker image to run a custom app that will use our model to detect objects from images or video.
 
 Our custom app will be consisting of a front end application and a rest api server to consume the model as defined in the `Dockerfile`
 ``` dockerfile
