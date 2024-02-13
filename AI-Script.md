@@ -2,7 +2,7 @@
 
 - Who are we?
 
-With recent development of AI technologies, new posibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud, and even if you can install some of these services in your private cloud infrastructure, for some cases it may represent a risk on data privacy, 
+With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud, and even if you can install some of these services in your private cloud infrastructure, for some cases it may represent a risk on data privacy, 
 
 - Here we explain how tools are used in AI workflows to fine tune existing models.
     - Dataset preprocessing
@@ -24,14 +24,14 @@ The way a workflow looks for this use case is as follows:
 - Once the model has been fine tuned, we can also include a custom app in our environment to serve the model. Ideally, serving the model, should be done in a separate environment than the training, but for the purposes of this project we bundled everything in a single environment.
 
 ## Prerequisites
-- A k8s cluster where the environment will be installed. You can have this in the cloud or in prem. For development you can also use minikube or kind as we are doing for this demo.
-- `kubectl` installed and configured to connect to the k8s cluster.
+- A k8s cluster where the environment will be installed. You can have this in the cloud or in prem. For development you can also use minikube or [kind](https://kind.sigs.k8s.io/) as we are doing for this demo.
+- `kubectl` [installed and configured](https://kubernetes.io/docs/reference/kubectl/) to connect to the k8s cluster.
 - Helm 3 installed and add all the repos needed for the tools we'll be using (`helm repo add <NAME> <URL>`)
     - MetalLB: `metallb https://metallb.github.io/metallb` 
     - LabelStudio: `heartex https://charts.heartex.com/`
     - JupyterHub: `jupyterhub https://hub.jupyter.org/helm-chart/`
-- Docker
-- npm & [cdk8s](https://cdk8s.io/docs/latest/cli/installation/) cli
+- [Docker](https://www.docker.com/get-started/)
+- [nodejs](https://nodejs.org/en) & [cdk8s](https://cdk8s.io/docs/latest/cli/installation/) cli
 - If running on custom hardware outside a cloud provider, the cluster most likely will need to have installed a custom load balancer. K3s comes with it's own load balancer preinstalled, but for this demo we'll be using [MetalLB](https://metallb.universe.tf/installation/#installation-with-helm).
 - Presentation setup:
   - `kind create cluster --config cluster/kind-config.yaml`
@@ -172,7 +172,7 @@ This will create the dist folser if it does not exists and add the yaml file wit
 0001-metallb-config.k8s.yaml
 0002-ai-iac.k8s.yaml
 ```
-### Applying IaC to cluster
+### Applying changes to cluster
 Make sure that kubectl is configured to use your intended cluster before applying any changes, since in our case we're using kind we can simply run `kubectl cluster-info --context kind-kind` but you could also inspect the nodes to make sure you are connected to the right cluster `kubectl get nodes`
 
 To apply the changes we'll need to run the following command:

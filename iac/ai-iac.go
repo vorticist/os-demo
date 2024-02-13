@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
+
 	"github.com/arkusnexus/ai-demo/iac/imports/k8s"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
-	"os"
 )
 
 type AIChartProps struct {
@@ -54,20 +55,20 @@ func NewAIChart(scope constructs.Construct, id string, props *AIChartProps) cdk8
 	})
 	/************************** registry auth ********************************/
 	/************************** label-studio  ********************************/
-	//cdk8s.NewHelm(chart, jsii.String("label-studio"), &cdk8s.HelmProps{
-	//	Chart:     jsii.String("heartex/label-studio"),
-	//	HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
-	//	Values: &map[string]interface{}{
-	//		"app": map[string]interface{}{
-	//			"service": map[string]interface{}{
-	//				"type": "LoadBalancer",
-	//			},
-	//		},
-	//		"replica": map[string]interface{}{
-	//			"replicaCount": 1,
-	//		},
-	//	},
-	//})
+	cdk8s.NewHelm(chart, jsii.String("label-studio"), &cdk8s.HelmProps{
+		Chart:     jsii.String("heartex/label-studio"),
+		HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
+		Values: &map[string]interface{}{
+			"app": map[string]interface{}{
+				"service": map[string]interface{}{
+					"type": "LoadBalancer",
+				},
+			},
+			"replica": map[string]interface{}{
+				"replicaCount": 1,
+			},
+		},
+	})
 	/************************** label-studio  ********************************/
 	/************************** jupyterhub    ********************************/
 	cdk8s.NewHelm(chart, jsii.String("jupyter-hub"), &cdk8s.HelmProps{
