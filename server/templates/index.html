@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+    <style>
+        .terminal-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            font-family: monospace;
+        }
+
+        .terminal-list li:before {
+            content: "$";
+            margin-right: 0.5em;
+            color: #33FF33; /* Green color for the terminal prompt */
+        }
+
+        .terinal-bg {
+            background-color: #FFFFFF;
+        }
+    </style>
+    <title>Video Stream Client</title>
+</head>
+<body>
+    <div hx-ext="ws" ws-connect="/detect">
+        <div class="container mt-5">
+            <h2>Taco Finder</h2>
+            <form id="wsForm" ws-send hx-reset-on-success>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Use a link to an image or a youtube video</label>
+                    <input type="text" class="form-control" id="message" name="message">
+                </div>
+                <button type="submit" class="btn btn-primary">Detect</button>
+            </form>
+            <div id="video" hx-swap-oob="innerHTML">
+            </div>
+            <details>
+                <summary>
+                    <h5>
+                    <span>Logs <i class="bi bi-terminal"></i></span>
+                    </h5>
+                </summary>
+                <div class="mt-3">
+                    <ul id="output" class="terminal-list" hx-swap-oob="afterbegin"></ul>
+                </div>
+            </details>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

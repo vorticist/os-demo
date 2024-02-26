@@ -10,6 +10,8 @@ WORKDIR /server
 COPY --from=builder /server/server .
 COPY --from=builder /server/client ./client
 COPY --from=builder /server/static ./static
+COPY --from=builder /server/templates ./templates
+COPY --from=builder /server/best.pt ./best.pt
 
 RUN ls
 

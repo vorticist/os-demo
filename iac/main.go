@@ -9,7 +9,9 @@ func main() {
 	networkChart := NewNetworkSetupChart(app, "network-setup", nil)
 	metallbConfigChart := NewMetallbConfigChart(app, "metallb-config", nil)
 	metallbConfigChart.AddDependency(networkChart)
-	aiChart := NewAIChart(app, "ai-iac", nil)
-	aiChart.AddDependency(metallbConfigChart)
+	//aiChart := NewAIChart(app, "ai-iac", nil)
+	//aiChart.AddDependency(metallbConfigChart)
+
+	NewTinyLlamaChart(app, "tiny-llama", nil)
 	app.Synth()
 }
