@@ -2,26 +2,36 @@
 
 - Who are we?
 
-With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud, and even if you can install some of these services in your private cloud infrastructure, for some cases it may represent a risk on data privacy, 
+With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable. Or may have a need to experiment beyond what those services allow.
 
-- Here we explain how tools are used in AI workflows to fine tune existing models.
-    - Dataset preprocessing
-    - Iterate training
+But setting up a workflow environment to train or serve an AI model is not excactly as straightforward as setting it up in a 'as a service' environment, that's why, for this tutorial, we put together a sample workflow environment to train and serve an image recognition model using open source tools and technologies that can be installed in your own private cloud or even in your own hardware on premises. The project leverages K8s to be able to eaisily setup and configure the tools needed to train the model but also showcases how a custom app can be quickly integrated into the environment to serve the model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
 
-Additionally, setting up a workflow environment to train or serve an AI model is not excactly as straightforward as setting it up in a 'as a service' environment, that's why, for this tutorial, we put together a sample workflow environment to train and serve an image recognition model using open source tools and technologies that can be installed in your own private cloud or even in your own hardware on premises. The project leverages K8s to be able to eaisily setup and configure the tools needed to train the model but also showcases how a custom app can be quickly integrated into the environment to serve the model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
+# YOLOv8 model
 
-We're presenting a couple of examples with pretrained models that then get fine tuned, but much of the principles shown here can be used to setup an environment to train from scratch if that's what your project requires.
+We will be setting up an environment for a simple use case: train and serve an image recognition model, using YOLOv8 in our case.
 
-# Sample Use Case 1
+The way a workflow for image recognition applications looks for this use case is as follows:
+- We need a dataset to fine tune our model, usually videos or images that will be tagged in order to use in the training and validation processes. The images should be as close as the real case the model will be dealing with and should contain the object to identify.
+- We'll need a tool to tag our dataset efectively identifying objects of interests. For this project we're using LabelStudio in our environment since it allows to export datasets in YOLO format.
+- Once the dataset has been pre-processed, it is used to refine of fine tune our model until we reach the desired accuracy. We can use a Jupyter notebook and a python script for this.
+- We can also include a custom app in our environment to serve the model. Ideally, serving the model, should be done in a separate environment than the training env, but for the purposes of this project we bundled everything in a single environment.
 
-For our first use case we will be demonstrating how to setup an environment for what has become the hello world of AI models, train and serve an image recognition model, using YOLOv8. We will fine tune the model in order for it to be able to identify different kinds of tacos in images.
+[Diagram goes here]
 
-The way a workflow looks for this use case is as follows:
-- We need a dataset to fine tune our model, usually videos or images that will be tagger in order to use in the training and validation processes. The images should be as close as the real case the model will be dealing with and should contain the object to identify, in our case that's pictures of tacos.
-- We'll need a tool to tag our dataset efectively identifying every taco that appears in the dataset. For this we will use LabelStudio in our environment.
-- The dataset needs to be divided into thain, test and validation sub sets // TODO: mention the ideal proportion of each sub set compared to the total dataset size
-- The training process itself is pretty straigthforward, the important bit being to pay attention to the accuracy against the validation set until we reach the desired accuracy. We will be using a Jupyter notebook and a python script for this.
-- Once the model has been fine tuned, we can also include a custom app in our environment to serve the model. Ideally, serving the model, should be done in a separate environment than the training, but for the purposes of this project we bundled everything in a single environment.
+## The Tools
+This project focuses in showing how to setup the infrastructure for environments used to train or serve AI models with a few tools that fitted the needs of our demo, but the same principles and techniques can be adopted to fit a wide range of use cases.
+
+### Ultralytics YOLOv8 
+Ultralytics YOLOv8 stands at the forefront of real-time object detection frameworks, offering remarkable speed and accuracy in identifying objects within images and videos. Leveraging the YOLO (You Only Look Once) architecture
+### Label Studio
+A versatile data annotation tool facilitating efficient labeling of diverse datasets for machine learning projects, boasting an intuitive interface and support for various annotation types.
+### Jupiter Hub
+A cornerstone of collaborative computational environments within the Jupyter ecosystem, enabling seamless deployment and management of multi-user Jupyter Notebook servers for efficient team collaboration.
+### Docker
+Offers standardized containerization for applications, ensuring consistency and portability across diverse environments.
+### Kubernetes
+Powerful container orchestration platform automating deployment, scaling, and management of containerized applications, fostering high availability and scalability in distributed environments for cloud-native architectures
+ 
 
 ## Prerequisites
 - A k8s cluster where the environment will be installed. You can have this in the cloud or in prem. For development you can also use minikube or [kind](https://kind.sigs.k8s.io/) as we are doing for this demo.
@@ -38,11 +48,13 @@ The way a workflow looks for this use case is as follows:
   - `kind load docker-image aiarkusnexus/opensource-demo-be:latest`
   - `kubectl apply -f dist/0000-network-setup.k8s.yaml`
   - `kubectl apply -f dist/0001-metallb-config.k8s.yaml`
-## Steps
+## Step by Step
 ### CDK8s IaC project setup
-The first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). CDK8S is inspired by AWS' CDK, but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a k8s cluster accessible with kubectl. 
+The first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). It will allow us to manage all of our kubernetes infrastructure as code, making it reproduceable and esier to manage.
 
-The recommended template for cdk8s is the typescript one, but for this demo we choose to work with go:
+CDK8S is inspired by [AWS' CDK](https://aws.amazon.com/cdk/), but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a k8s cluster accessible with kubectl. 
+
+The recommended template for cdk8s is the typescript one and I recommend that you stick to that, but for this demo we choose to work with go:
 ``` bash
 mkdir my-demo-folder
 cd my-demo-folder
@@ -72,7 +84,10 @@ func main() {
 
 ```
 ### Create a chart for our AI infrastructure
-`cdk8s` uses the concept of charts to bundle resource management, which are different from helm charts, but act pretty much in the same way. You define a set of resources under a cdk8s chart and will generate a single resources file to apply to the cluster. Helcharts can be part of a cdk8s chart.
+`cdk8s` uses the concept of charts to bundle up resource management. These charts are different from helm charts, and in fact helmcharts can be part of a cdk8s chart. You define a set of resources under a cdk8s chart and will generate a single resources file to apply to the cluster.
+
+#### Helmcharts
+Helm Charts simplify the deployment and management of complex applications on Kubernetes, providing pre-configured packages of Kubernetes resources. With Helm Charts, users can efficiently package, share, and deploy applications with ease, streamlining the process of managing Kubernetes applications.
 
 Create a new file called `ai-iac.go` and we'll add the first of our tools, LabelStudio:
 ``` go
@@ -200,7 +215,7 @@ Input the URL into a browser and you should be greeted by the LabelStudio login 
 Now let's add more stuff to our AI chart.
 
 ### Adding Jupyter notebook
-Similarily to Label Studio, we will be using a helmchart to add Jupyter Hub to our cluster. Jupyter Hub will allow us to create notebooks in order to train and fine tune our model, it will also allow us to import our dataset once we've preprocessed it with Label Studio.
+Similarily to Label Studio, we will be using a helmchart to add Jupyter Hub to our cluster. Jupyter Hub will allow us to create notebooks in order to train and fine tune our model in a collaborative manner, it will also allow us to import our dataset once we've preprocessed it with Label Studio.
 
 Add the following code after the helm chart for Labels Studio in the `ai-iac.go` file:
 ``` go
@@ -223,7 +238,7 @@ If we generate the k8s files again and apply them to the cluste (`cdk8s synth` a
 If we instead destroy our cluster and generate a new one to apply the changes to, we'll see that it will create all of the resources from the beggining.
 
 ### Dataset tagging and model training
-- Showcase LabelStudio and create a small sample dataset with tags
+- Showcase LabelStudio running in the cluster and create a small sample dataset with tags
 - create a jupyter notebook and install ultralytics
 
 ```
@@ -239,25 +254,24 @@ results = model.train(data='coco128.yaml', epochs=3, imgsz=640)
 - Use a python script to fine tune the model using the dataset
 
 ### Add Custom Serving app
-When you're done fine-tuning your model, you'll want to serve it, for that we can use a kubernetes deployment with a service. We'll also use a docker image to run a custom app that will use our model to detect objects from images or video.
 
-Our custom app will be consisting of a front end application and a rest api server to consume the model as defined in the `Dockerfile`
-``` dockerfile
+So far we've used the provided Helm Charts to install 3rd party tools into our cluster, but for our custom app we'll use core kubernetes resources with cdk8s and configure them on our own.
+
+All that kubernetes needs to install any kind of app in a cluster is a docker image provided by an image repository. For this demo I have setup an image that contains a small web applications that uses a fine tuned YOLOv8 model to identify tacos in youtube videos. The application itself is just a wrapper around ultralytics' CLI tool. The image is published in docker.io and you can see it defined in the `Dockerfile` within the `server` folder:
+``` Dockerfile
 FROM golang:alpine3.19 as builder
 COPY . /server
 WORKDIR /server
 
 RUN go build -o server .
-RUN ls
 
 FROM ultralytics/ultralytics:latest as yolov8
 WORKDIR /server
 COPY --from=builder /server/server .
 COPY --from=builder /server/client ./client
 COPY --from=builder /server/static ./static
-
-RUN ls
-
+COPY --from=builder /server/templates ./templates
+COPY --from=builder /server/best.pt ./best.pt
 
 ENV TZ=US/Pacific
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -267,11 +281,56 @@ RUN conda update -y ffmpeg
 
 ENTRYPOINT [ "/server/server" ]
 ```
-Underneath, YoloV8 uses `ffmpeg` to process video, so we need to make sure that it's added in the `Dockerfile`
+With that, we can use a couple of [kubernetes resources](https://kubernetes.io/docs/concepts/) to pull that image and spin up an instance of our application. 
+#### Deployment
+With a [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) we tell kubernetes what do we want to deploy and how to manage its resources
+- They represent the in-cluster desired state of our application
+- Resource Management ans Scaling can be configured through a Deployment
+
+Back in our `ai-iac.go` file we can add to our chart:
+``` golang
+	appName := "arkusnexus-demo-be"
+	labels := map[string]*string{
+		"app": jsii.String(appName),
+	}
+
+	deploymentName := fmt.Sprintf("%v-deployment", appName)
+	k8s.NewKubeDeployment(chart, jsii.String(deploymentName), &k8s.KubeDeploymentProps{
+		Metadata: &k8s.ObjectMeta{
+			Name:      jsii.String(deploymentName),
+			Namespace: jsii.String(namespace),
+		},
+		Spec: &k8s.DeploymentSpec{
+			Replicas: jsii.Number(1),
+			Selector: &k8s.LabelSelector{
+				MatchLabels: &labels,
+			},
+			Template: &k8s.PodTemplateSpec{
+				Metadata: &k8s.ObjectMeta{
+					Labels: &labels,
+				},
+				Spec: &k8s.PodSpec{
+					Containers: &[]*k8s.Container{{
+						Name:  jsii.String("be-container"),
+						Image: jsii.String("aiarkusnexus/opensource-demo-be:latest"),
+						Ports: &[]*k8s.ContainerPort{{
+							ContainerPort: jsii.Number(8080),
+						}},
+					}},
+				},
+			},
+		},
+	})
+```
+#### Service
+
+The kubernetes cluster will need access to the registry in order to download the image and spin up new pods, (If you're using public images you won't need to setup credentials for img pull) 
+
+
+When you're done fine-tuning your model, you'll want to serve it, for that we can use a kubernetes deployment with a service. We'll also use a docker image to run a custom app that will use our model to detect objects from images or video.
+
+Our custom app is already prepakaged as a docker image, it is a simple web app that wraps around the CLI interface that ultralytics provide.  
+
 - Explain server functionality and dockerization
 - Add registry secrets to iac chart and explain image loading for pods
 - Add custom app deployment and service for consumption.
-
-# Sample Use Case 2
-
-# Train model from scratch (no demo)
