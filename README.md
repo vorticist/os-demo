@@ -52,9 +52,9 @@ Powerful container orchestration platform automating deployment, scaling, and ma
 ### CDK8s IaC project setup
 The first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). It will allow us to manage all of our kubernetes infrastructure as code, making it reproduceable and esier to manage.
 
-CDK8S is inspired by [AWS' CDK](https://aws.amazon.com/cdk/), but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a k8s cluster accessible with kubectl. 
+CDK8S is inspired by [AWS' CDK](https://aws.amazon.com/cdk/), but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a kubernetes cluster accessible via kubectl. 
 
-The recommended template for cdk8s is the typescript one and I recommend that you stick to that, but for this demo we choose to work with go:
+The recommended template for cdk8s is the typescript one and I recommend that you stick to that as it is best covered in the documentation, but for this demo we choose to experiment with go:
 ``` bash
 mkdir my-demo-folder
 cd my-demo-folder
@@ -62,7 +62,7 @@ mkdir iac
 cd iac
 cdk8s init go-app
 ```
-The main.go file is the entry point for the project and it will contain generated code by the cdk8s cli, you can modify that code in place, but we'll be using a separate file to keep things tidy. 
+The `main.go` file is the entry point for the project and it will contain generated code by the cdk8s cli, you can modify that code in place, but we'll be using a separate file to keep things tidy. 
 
 It is also important to run the [cdk8s import command](https://cdk8s.io/docs/latest/cli/import/) as this will import all the base constructs to work with kubernetes.
 ``` bash
@@ -84,7 +84,9 @@ func main() {
 
 ```
 ### Create a chart for our AI infrastructure
-`cdk8s` uses the concept of charts to bundle up resource management. These charts are different from helm charts, and in fact helmcharts can be part of a cdk8s chart. You define a set of resources under a cdk8s chart and will generate a single resources file to apply to the cluster.
+`cdk8s` uses the concept of charts to bundle up resource management. Basically, you define a set of resources under a cdk8s chart and it will generate a single resources file (yaml) ready to be applied to the cluster.
+
+These charts are different from helm charts, and in fact helm charts can be installed using a cdk8s chart, that's how we will install some of our tools. We'll add Helm Charts for LabelStudio and JupyterHub to our environment.
 
 #### Helmcharts
 Helm Charts simplify the deployment and management of complex applications on Kubernetes, providing pre-configured packages of Kubernetes resources. With Helm Charts, users can efficiently package, share, and deploy applications with ease, streamlining the process of managing Kubernetes applications.
@@ -138,7 +140,7 @@ func NewAIChart(scope constructs.Construct, id string, props *AIChartProps) cdk8
 	/************************** label-studio  ********************************/
 }
 ```
-Make sure to add the helm repo as stated in the prerequisites: `helm repo add heartex https://charts.heartex.com/` 
+Make sure to add the helm repo as stated in the prerequisites by executing the following command in the terminal: `helm repo add heartex https://charts.heartex.com/` 
 
 The first thing we do is to create a namespace and tie it to our cdk8s chart so that every construct defined within it will be created under that same namespace.
 
@@ -188,7 +190,7 @@ This will create the dist folser if it does not exists and add the yaml file wit
 0002-ai-iac.k8s.yaml
 ```
 ### Applying changes to cluster
-Make sure that kubectl is configured to use your intended cluster before applying any changes, since in our case we're using kind we can simply run `kubectl cluster-info --context kind-kind` but you could also inspect the nodes to make sure you are connected to the right cluster `kubectl get nodes`
+Make sure that kubectl is configured to use your intended cluster before applying any changes, since in our case we're using `kind` we can simply run `kubectl cluster-info --context kind-kind` but you could also inspect the nodes to make sure you are connected to the right cluster `kubectl get nodes`
 
 To apply the changes we'll need to run the following command:
 ``` bash
@@ -281,11 +283,40 @@ RUN conda update -y ffmpeg
 
 ENTRYPOINT [ "/server/server" ]
 ```
-With that, we can use a couple of [kubernetes resources](https://kubernetes.io/docs/concepts/) to pull that image and spin up an instance of our application. 
+
+The kubernetes cluster will need access to the registry in order to download the image and spin up new pods, we'll need to add registry credentials as part of our cluster resources (If you're using public images you won't need to setup credentials for img pull)
+
+`ai-iac.go`
+``` golang
+	registrySecretName := "registry-secrets"
+	rawAuth := fmt.Sprintf("%v:%v", os.Getenv("DOCKER_USER"), os.Getenv("DOCKER_PASSWORD"))
+	auth := base64.StdEncoding.EncodeToString([]byte(rawAuth))
+	rawDockercfgjson := fmt.Sprintf(`
+	{
+	  "auths": {
+		"%v": {
+		  "auth": "%v",
+		  "email": "%v"
+		}
+	  }
+	}
+	`, os.Getenv("DOCKER_REGISTRY_SERVER"), auth, os.Getenv("DOCKER_EMAIL"))
+	dockercfgjson := base64.StdEncoding.EncodeToString([]byte(rawDockercfgjson))
+	k8s.NewKubeSecret(chart, &registrySecretName, &k8s.KubeSecretProps{
+		Metadata: &k8s.ObjectMeta{
+			Name:      &registrySecretName,
+			Namespace: &namespace,
+		},
+		Type: jsii.String("kubernetes.io/dockerconfigjson"),
+		Data: &map[string]*string{
+			".dockerconfigjson": &dockercfgjson,
+		},
+	})
+```
 #### Deployment
 With a [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) we tell kubernetes what do we want to deploy and how to manage its resources
 - They represent the in-cluster desired state of our application
-- Resource Management ans Scaling can be configured through a Deployment
+- Resource Management and Scaling can be configured through a Deployment
 
 Back in our `ai-iac.go` file we can add to our chart:
 ``` golang
@@ -322,9 +353,11 @@ Back in our `ai-iac.go` file we can add to our chart:
 		},
 	})
 ```
+Notice that the deployment definition contains a pod spec, this is a core resource in kubernetes that allows us to run our application and in this case we need to indicate what image we want the pod to be running `Image: jsii.String("aiarkusnexus/opensource-demo-be:latest")` this will use the registry credentials that we previously defined
+
 #### Service
 
-The kubernetes cluster will need access to the registry in order to download the image and spin up new pods, (If you're using public images you won't need to setup credentials for img pull) 
+ 
 
 
 When you're done fine-tuning your model, you'll want to serve it, for that we can use a kubernetes deployment with a service. We'll also use a docker image to run a custom app that will use our model to detect objects from images or video.
