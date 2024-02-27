@@ -25,40 +25,44 @@ Tipically a workflow for image recognition applications looks something along th
 ## The Tools
 This project focuses in showing how to setup the infrastructure for a specific environment used to train or serve an AI model using a few tools that fitted the needs for the proof of concept, but the same principles and techniques can be adopted to fit a wide range of use cases using different tools and models.
 
-### Ultralytics YOLOv8 
+### [Ultralytics YOLOv8](https://www.ultralytics.com/yolo) 
 Ultralytics YOLOv8 stands at the forefront of real-time object detection frameworks, offering remarkable speed and accuracy in identifying objects within images and videos. Leveraging the YOLO (You Only Look Once) architecture
-### Label Studio
+### [Label Studio](https://labelstud.io/)
 A versatile data annotation tool facilitating efficient labeling of diverse datasets for machine learning projects, boasting an intuitive interface and support for various annotation types. YOLO being one that's supported
-### Jupiter Hub
+### [Jupiter Hub](https://jupyter.org/hub)
 A cornerstone of collaborative computational environments within the Jupyter ecosystem, enabling seamless deployment and management of multi-user Jupyter Notebook servers for efficient team collaboration.
-### Docker
+### [Docker](https://www.docker.com)
 Offers standardized containerization for applications, ensuring consistency and portability across diverse environments.
-### Kubernetes
+### [Kubernetes](https://kubernetes.io/)
 Powerful container orchestration platform automating deployment, scaling, and management of containerized applications, fostering high availability and scalability in distributed environments for cloud-native architectures
+
+We'll use a Kubernetes cluster to make our environment portable, so it can be used with established cloud providers as well as with custom hardware or servers. All of the tools and services needed for our workflow will be "installed" on top of this cluster.
  
 
 ## Prerequisites
 - [Docker](https://www.docker.com/get-started/)
 - [nodejs](https://nodejs.org/en) & [cdk8s](https://cdk8s.io/docs/latest/cli/installation/) cli
-- A kubernetes cluster where the environment will be installed. You can have this in the cloud or in prem. For development you can use [kind](https://kind.sigs.k8s.io/) as we are doing for this demo. This project has also been tested on [k3s](https://k3s.io/) and [minikube](https://minikube.sigs.k8s.io/docs/start/)
+- A kubernetes cluster where the environment will be installed. You can have this in the cloud or in prem. For development you can use [kind](https://kind.sigs.k8s.io/), that's what we are using. This project has also been tested on [k3s](https://k3s.io/) and [minikube](https://minikube.sigs.k8s.io/docs/start/)
 - `kubectl` [installed and configured](https://kubernetes.io/docs/reference/kubectl/) to connect to the kubernetes cluster.
-- Helm 3 installed and add all the repos needed for the tools we'll be using (`helm repo add <NAME> <URL>`)
+- [Helm 3](https://helm.sh/) installed and add all the repos needed for the tools we'll be using (`helm repo add <NAME> <URL>`)
     - MetalLB: `metallb https://metallb.github.io/metallb` 
     - LabelStudio: `heartex https://charts.heartex.com/`
     - JupyterHub: `jupyterhub https://hub.jupyter.org/helm-chart/`
 - If running on custom hardware outside a cloud provider, the cluster most likely will need to have installed a custom load balancer. K3s comes with it's own load balancer preinstalled, but for this demo we'll be using [MetalLB](https://metallb.universe.tf/installation/#installation-with-helm).
-- Clu setup:
+- Cluster setup:
   - `kind create cluster --config cluster/kind-config.yaml`
   - `kind load docker-image aiarkusnexus/opensource-demo-be:latest`
   - `kubectl apply -f dist/0000-network-setup.k8s.yaml`
   - `kubectl apply -f dist/0001-metallb-config.k8s.yaml`
 ## Step by Step
 ### CDK8s IaC project setup
-The first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). It will allow us to manage all of our kubernetes infrastructure as code, making it reproduceable and esier to manage.
+The first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). It will allow us to manage all of our kubernetes infrastructure as code, making it reproduceable and esier to mantain.
 
-CDK8S is inspired by [AWS' CDK](https://aws.amazon.com/cdk/), but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a kubernetes cluster accessible via kubectl. 
+CDK8S is inspired by [AWS' CDK](https://aws.amazon.com/cdk/), but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a kubernetes cluster accessible via kubectl.
 
-The recommended template for cdk8s is the typescript one and I recommend that you stick to that as it is best covered in the documentation, but for this demo we choose to experiment with go:
+In this project `cdk8s` will help us manage all the different tools and components that we need to add to our environment, but the same environment could be achieved by manually installing all components separately.
+
+The recommended language for cdk8s is Typescript and I recommend that you stick to that, as it is best covered in the documentation, but for this demo we choose to experiment with go:
 ``` bash
 mkdir my-demo-folder
 cd my-demo-folder
@@ -66,7 +70,7 @@ mkdir iac
 cd iac
 cdk8s init go-app
 ```
-The `main.go` file is the entry point for the project and it will contain generated code by the cdk8s cli, you can modify that code in place, but we'll be using a separate file to keep things tidy. 
+The `main.go` file is the entry point for the project and it will contain generated code by the cdk8s cli, you can modify that chart in place, but we'll be using a separate file to keep things tidy. 
 
 It is also important to run the [cdk8s import command](https://cdk8s.io/docs/latest/cli/import/) as this will import all the base constructs to work with kubernetes.
 ``` bash
@@ -90,10 +94,10 @@ func main() {
 ### Create a chart for our AI infrastructure
 `cdk8s` uses the concept of charts to bundle up resource management. Basically, you define a set of resources under a cdk8s chart and it will generate a single resources file (yaml) ready to be applied to the cluster.
 
-These charts are different from helm charts, and in fact helm charts can be installed using a cdk8s chart, that's how we will install some of our tools. We'll add Helm Charts for LabelStudio and JupyterHub to our environment.
+These charts are different from helm charts, and in fact helm charts can be installed using a cdk8s chart, that's how we will install some of our tools. We'll use Helm Charts to add LabelStudio and JupyterHub to our environment.
 
 #### Helmcharts
-Helm Charts simplify the deployment and management of complex applications on Kubernetes, providing pre-configured packages of Kubernetes resources. With Helm Charts, users can efficiently package, share, and deploy applications with ease, streamlining the process of managing Kubernetes applications.
+[Helm Charts](https://helm.sh/docs/topics/charts/) simplify the deployment and management of complex applications on Kubernetes, providing pre-configured packages of Kubernetes resources. With Helm Charts, users can efficiently package, share, and deploy applications with ease, streamlining the process of managing Kubernetes applications.
 
 Create a new file called `ai-iac.go` and we'll add the first of our tools, LabelStudio:
 ``` go
@@ -182,19 +186,19 @@ With `aiChart := NewAIChart(app, "ai-iac", nil)` we are instructing cdk8s to tak
 
 For this demo we also needed to include two charts to setup MetalLB (which were not shown here, but are part of the source code in case you want to take a look) and that's why we're adding a dependency between them with `metallbConfigChart.AddDependency(networkChart)` and `aiChart.AddDependency(metallbConfigChart)`, this will cause the output to be generated in a three separate yaml files that need to be applied in order.
 
-### Generating k8s files
+### Generating Kubernetes YAML files
 In order to test these changes, we'll need to run the synth command at the root folder of our IaC project
 ``` bash
 cdk8s synth
 ```
-This will create the dist folser if it does not exists and add the yaml file within it:
+This will create the dist folder if it does not exists and add the yaml files within it:
 ``` bash
 0000-network-setup.k8s.yaml
 0001-metallb-config.k8s.yaml
 0002-ai-iac.k8s.yaml
 ```
 ### Applying changes to cluster
-Make sure that kubectl is configured to use your intended cluster before applying any changes, since in our case we're using `kind` we can simply run `kubectl cluster-info --context kind-kind` but you could also inspect the nodes to make sure you are connected to the right cluster `kubectl get nodes`
+Make sure that kubectl is configured to use your intended cluster before applying any changes. In our case we're using `kind`, we can simply run `kubectl cluster-info --context kind-kind` but you could also inspect the nodes to make sure you are connected to the right cluster `kubectl get nodes`. Checke your .kubeconfig file if kubectl is not connecting properly
 
 To apply the changes we'll need to run the following command:
 ``` bash
@@ -215,13 +219,13 @@ kubectl get services -A
 Look for a service named after LabelStudio and take note of its external IP // TODO: use an in-cluster dns service to use custom domain names instead of the raw IPs
 - Image here
 
-Input the URL into a browser and you should be greeted by the LabelStudio login screen.
+Input the URL into a browser and you should be greeted by the LabelStudio login screen. You'll need to create a new user the first time you use LabelStudio. 
 - Image here
 
-Now let's add more stuff to our AI chart.
+LabelStudio provides versatile data annotation capabilities, enabling efficient labeling of diverse datasets for machine learning projects, with support for various data types including text, image, and audio, along with an intuitive interface for streamlined annotation workflows. It can also export processed datasets in YOLO format which is why we choose it for this project. 
 
 ### Adding Jupyter notebook
-Similarily to Label Studio, we will be using a helmchart to add Jupyter Hub to our cluster. Jupyter Hub will allow us to create notebooks in order to train and fine tune our model in a collaborative manner, it will also allow us to import our dataset once we've preprocessed it with Label Studio.
+Similarily to Label Studio, we will be using a Helm Chart to add Jupyter Hub to our cluster. Jupyter Hub will allow us to create notebooks in order to train and fine tune our model in a collaborative manner, it will also allow us to import our dataset once we've preprocessed it with Label Studio.
 
 Add the following code after the helm chart for Labels Studio in the `ai-iac.go` file:
 ``` go
@@ -237,16 +241,17 @@ Add the following code after the helm chart for Labels Studio in the `ai-iac.go`
 	/************************** jupyterhub    ********************************/
     ...
 ```
-If we generate the k8s files again and apply them to the cluste (`cdk8s synth` and `kubectl apply`), we'll notice that it will only add resources related to jupyter hub and did not perform any changes to our previously defined resources. This is because k8s applies manifest changes incrementaly, detecting changes directly from the yaml files and only modifying resources that are new or have changes in their definitions.
+If we generate the k8s files again and apply them to the cluster (`cdk8s synth` and `kubectl apply`), we'll notice that it will only add resources related to Jupyter Hub and did not perform any changes to our previously defined resources. This is because Kubernetes applies manifest changes incrementaly, detecting changes directly from the yaml files and only modifying resources that are new or have changes in their definitions.
 
 - Image here
 
 If we instead destroy our cluster and generate a new one to apply the changes to, we'll see that it will create all of the resources from the beggining.
 
-### Dataset tagging and model training
-- Showcase LabelStudio running in the cluster and create a small sample dataset with tags
-- create a jupyter notebook and install ultralytics
+Look under the cluster services and take note of the external IP for the Jupiter Hub service and open it in a browser. You can use any username/password combination for now.
 
+Create a new notebook and test the YOLOv8 model
+
+[Image here]
 ```
 pip install ultralytics 
 pip install opencv-python-headless
@@ -257,13 +262,12 @@ from ultralytics import YOLO
 model = YOLO('yolov8n.pt') 
 results = model.train(data='coco128.yaml', epochs=3, imgsz=640)
 ```
-- Use a python script to fine tune the model using the dataset
 
 ### Add Custom Serving app
 
 So far we've used the provided Helm Charts to install 3rd party tools into our cluster, but for our custom app we'll use core kubernetes resources with cdk8s and configure them on our own.
 
-All that kubernetes needs to install any kind of app in a cluster is a docker image provided by an image repository. For this demo I have setup an image that contains a small web applications that uses a fine tuned YOLOv8 model to identify tacos in youtube videos. The application itself is just a wrapper around ultralytics' CLI tool. The image is published in docker.io and you can see it defined in the `Dockerfile` within the `server` folder:
+All that kubernetes needs to install any kind of app in a cluster is a docker image provided by an image repository. For this demo I have setup an image that contains a small web application that uses a fine tuned YOLOv8 model to identify tacos in youtube videos. The application itself is just a wrapper around Ultralytics' CLI tool. The image is published in docker.io and you can see it defined in the `Dockerfile` within the `server` folder:
 ``` Dockerfile
 FROM golang:alpine3.19 as builder
 COPY . /server
@@ -288,7 +292,7 @@ RUN conda update -y ffmpeg
 ENTRYPOINT [ "/server/server" ]
 ```
 
-The kubernetes cluster will need access to the registry in order to download the image and spin up new pods, we'll need to add registry credentials as part of our cluster resources (If you're using public images you won't need to setup credentials for img pull)
+The kubernetes cluster will need access to the registry in order to download the image, we'll need to add registry credentials as part of our cluster resources (If you're using images publicly available, you won't need to setup credentials for img pull)
 
 `ai-iac.go`
 ``` golang
@@ -317,6 +321,7 @@ The kubernetes cluster will need access to the registry in order to download the
 		},
 	})
 ```
+We're getting the actual cred values from the local docker environment variables and creating a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) in our cluster. 
 #### Deployment
 With a [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) we tell kubernetes what do we want to deploy and how to manage its resources
 - They represent the in-cluster desired state of our application
