@@ -353,17 +353,39 @@ Back in our `ai-iac.go` file we can add to our chart:
 		},
 	})
 ```
-Notice that the deployment definition contains a pod spec, this is a core resource in kubernetes that allows us to run our application and in this case we need to indicate what image we want the pod to be running `Image: jsii.String("aiarkusnexus/opensource-demo-be:latest")` this will use the registry credentials that we previously defined
+Notice that the deployment definition contains a pod spec, this is a core resource in kubernetes that allows us to run our application and in this case we need to indicate what image we want the pod to be running `Image: jsii.String("aiarkusnexus/opensource-demo-be:latest")` this will use the registry credentials that we defined previously
 
 #### Service
 
- 
+ By default pods running applications will only be reacheable by other apps inside the same cluster, that works for some service arrays, but most likely you'll want to expose your app to a network, wether that'd be the internet or a local network. Kubernetes uses [services](https://kubernetes.io/docs/concepts/services-networking/service/) to achieve that and they work in conjunction with the load balancer to expose designated apps to out-of-cluster network traffic
 
+``` golang
+	serviceName := fmt.Sprintf("%v-service", appName)
+	port := float64(8080)
+	k8s.NewKubeService(chart, jsii.String(serviceName), &k8s.KubeServiceProps{
+		Metadata: &k8s.ObjectMeta{},
+		Spec: &k8s.ServiceSpec{
+			Ports: &[]*k8s.ServicePort{
+				{
+					Port: &port,
+				},
+			},
+			Selector: &labels,
+			Type:     jsii.String("LoadBalancer"),
+		},
+	})
+```
 
-When you're done fine-tuning your model, you'll want to serve it, for that we can use a kubernetes deployment with a service. We'll also use a docker image to run a custom app that will use our model to detect objects from images or video.
-
-Our custom app is already prepakaged as a docker image, it is a simple web app that wraps around the CLI interface that ultralytics provide.  
-
-- Explain server functionality and dockerization
-- Add registry secrets to iac chart and explain image loading for pods
-- Add custom app deployment and service for consumption.
+Once we add that to our chart we can run `cdk8s synth` and apply the yaml manifest to the cluster using `kubectl`.
+  ``` bash
+ kubectl apply -f dist/0002-ai-iac.k8s.yaml
+ ```
+ A new pod should spin up in our cluster, running our app
+ ``` bash
+ watch -n 2 kubectl get -n ai-iac pods
+ ```
+ If you check under services you will notice that a service for our app has been added. 
+ ``` bash
+ watch -n 2 kubectl get -n ai-iac services
+ ``` 
+ Take note of the external IP in the service and paste it in a browser, our demo app should pop up. In it you can input a youtube video link and it will process it using a YOLOv8 model fine tuned to find tacos. 
