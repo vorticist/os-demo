@@ -2,29 +2,33 @@
 
 - Who are we?
 
-With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable. Or may have a need to experiment beyond what those services allow.
+## Project
 
-But setting up a workflow environment to train or serve an AI model is not excactly as straightforward as setting it up in a 'as a service' environment, that's why, for this tutorial, we put together a sample workflow environment to train and serve an image recognition model using open source tools and technologies that can be installed in your own private cloud or even in your own hardware on premises. The project leverages K8s to be able to eaisily setup and configure the tools needed to train the model but also showcases how a custom app can be quickly integrated into the environment to serve the model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
+With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable. Or you may have a need to experiment beyond what those services allow. A quick and dirty R&D environment, for instance.
+
+But setting up a workflow environment to train or serve an AI model is not excactly as straightforward as setting it up in a 'as a service' environment, that's why, for this project, we put together a sample workflow environment to help understand some of the moving pieces that are used to setup infrastructure and the necessary tools to train or serve a model. In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
+
+ The project leverages Kubernetes to be able to eaisily setup and configure the 3rd party tools needed, but also showcases how a custom app can be quickly integrated into the environment to serve a model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
 
 # YOLOv8 model
 
 We will be setting up an environment for a simple use case: train and serve an image recognition model, using YOLOv8 in our case.
 
-The way a workflow for image recognition applications looks for this use case is as follows:
-- We need a dataset to fine tune our model, usually videos or images that will be tagged in order to use in the training and validation processes. The images should be as close as the real case the model will be dealing with and should contain the object to identify.
+Tipically a workflow for image recognition applications looks something along the lines of:
+- We need a dataset to fine tune our model, usually consits of images or videos that will be tagged in order to use in the training and validation processes. The images should be as close as the real case the model will be dealing with and should contain the object to identify.
 - We'll need a tool to tag our dataset efectively identifying objects of interests. For this project we're using LabelStudio in our environment since it allows to export datasets in YOLO format.
-- Once the dataset has been pre-processed, it is used to refine of fine tune our model until we reach the desired accuracy. We can use a Jupyter notebook and a python script for this.
+- Once the dataset has been pre-processed, it is used to fine tune our model until we reach the desired accuracy. We can use a Jupyter notebook and a python script for this as ultralytics provides a clean interface for both training and serving a model.
 - We can also include a custom app in our environment to serve the model. Ideally, serving the model, should be done in a separate environment than the training env, but for the purposes of this project we bundled everything in a single environment.
 
 [Diagram goes here]
 
 ## The Tools
-This project focuses in showing how to setup the infrastructure for environments used to train or serve AI models with a few tools that fitted the needs of our demo, but the same principles and techniques can be adopted to fit a wide range of use cases.
+This project focuses in showing how to setup the infrastructure for a specific environment used to train or serve an AI model using a few tools that fitted the needs for the proof of concept, but the same principles and techniques can be adopted to fit a wide range of use cases using different tools and models.
 
 ### Ultralytics YOLOv8 
 Ultralytics YOLOv8 stands at the forefront of real-time object detection frameworks, offering remarkable speed and accuracy in identifying objects within images and videos. Leveraging the YOLO (You Only Look Once) architecture
 ### Label Studio
-A versatile data annotation tool facilitating efficient labeling of diverse datasets for machine learning projects, boasting an intuitive interface and support for various annotation types.
+A versatile data annotation tool facilitating efficient labeling of diverse datasets for machine learning projects, boasting an intuitive interface and support for various annotation types. YOLO being one that's supported
 ### Jupiter Hub
 A cornerstone of collaborative computational environments within the Jupyter ecosystem, enabling seamless deployment and management of multi-user Jupyter Notebook servers for efficient team collaboration.
 ### Docker
@@ -34,16 +38,16 @@ Powerful container orchestration platform automating deployment, scaling, and ma
  
 
 ## Prerequisites
-- A k8s cluster where the environment will be installed. You can have this in the cloud or in prem. For development you can also use minikube or [kind](https://kind.sigs.k8s.io/) as we are doing for this demo.
-- `kubectl` [installed and configured](https://kubernetes.io/docs/reference/kubectl/) to connect to the k8s cluster.
+- [Docker](https://www.docker.com/get-started/)
+- [nodejs](https://nodejs.org/en) & [cdk8s](https://cdk8s.io/docs/latest/cli/installation/) cli
+- A kubernetes cluster where the environment will be installed. You can have this in the cloud or in prem. For development you can use [kind](https://kind.sigs.k8s.io/) as we are doing for this demo. This project has also been tested on [k3s](https://k3s.io/) and [minikube](https://minikube.sigs.k8s.io/docs/start/)
+- `kubectl` [installed and configured](https://kubernetes.io/docs/reference/kubectl/) to connect to the kubernetes cluster.
 - Helm 3 installed and add all the repos needed for the tools we'll be using (`helm repo add <NAME> <URL>`)
     - MetalLB: `metallb https://metallb.github.io/metallb` 
     - LabelStudio: `heartex https://charts.heartex.com/`
     - JupyterHub: `jupyterhub https://hub.jupyter.org/helm-chart/`
-- [Docker](https://www.docker.com/get-started/)
-- [nodejs](https://nodejs.org/en) & [cdk8s](https://cdk8s.io/docs/latest/cli/installation/) cli
 - If running on custom hardware outside a cloud provider, the cluster most likely will need to have installed a custom load balancer. K3s comes with it's own load balancer preinstalled, but for this demo we'll be using [MetalLB](https://metallb.universe.tf/installation/#installation-with-helm).
-- Presentation setup:
+- Clu setup:
   - `kind create cluster --config cluster/kind-config.yaml`
   - `kind load docker-image aiarkusnexus/opensource-demo-be:latest`
   - `kubectl apply -f dist/0000-network-setup.k8s.yaml`
@@ -375,6 +379,7 @@ Notice that the deployment definition contains a pod spec, this is a core resour
 		},
 	})
 ```
+#### Updating Cluster
 
 Once we add that to our chart we can run `cdk8s synth` and apply the yaml manifest to the cluster using `kubectl`.
   ``` bash
