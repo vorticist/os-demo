@@ -4,7 +4,7 @@
 
 ## Project
 
-With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable. Or you may have a need to experiment beyond what those services allow. A quick and dirty R&D environment, for instance.
+With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable. Or you may have a need to experiment beyond what those services allow. An R&D environment, for instance.
 
 But setting up a workflow environment to train or serve an AI model is not excactly as straightforward as setting it up in a 'as a service' environment, that's why, for this project, we put together a sample workflow environment to help understand some of the moving pieces that are used to setup infrastructure and the necessary tools to train or serve a model. In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
 
