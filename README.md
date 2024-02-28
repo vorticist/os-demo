@@ -4,11 +4,11 @@
 
 ## Project
 
-With recent development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable. Or you may have a need to experiment beyond what those services allow. An R&D environment, for instance.
+With rapid development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable or beyond the scope of the project. Sensitive data traveling across the internet may represent a privacy risk. 
 
-But setting up a workflow environment to train or serve an AI model is not excactly as straightforward as setting it up in a 'as a service' environment, that's why, for this project, we put together a sample workflow environment to help understand some of the moving pieces that are used to setup infrastructure and the necessary tools to train or serve a model. In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
+But setting up a workflow environment to train or serve an AI model in a more private infrastructure is not excactly as straightforward as setting it up in a 'as a service' environment, that's why, for this project, we put together a sample workflow environment to help understand some of the moving pieces that are used to setup infrastructure and the necessary tools to train or serve a model. In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
 
- The project leverages Kubernetes to be able to eaisily setup and configure the 3rd party tools needed, but also showcases how a custom app can be quickly integrated into the environment to serve a model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
+The project leverages Kubernetes to be able to eaisily setup and configure the 3rd party tools needed, but also showcases how a custom app can be quickly integrated into the environment to serve a model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
 
 # YOLOv8 model
 
@@ -37,6 +37,8 @@ Offers standardized containerization for applications, ensuring consistency and 
 Powerful container orchestration platform automating deployment, scaling, and management of containerized applications, fostering high availability and scalability in distributed environments for cloud-native architectures
 
 We'll use a Kubernetes cluster to make our environment portable, so it can be used with established cloud providers as well as with custom hardware or servers. All of the tools and services needed for our workflow will be "installed" on top of this cluster.
+
+[Diagram Here]
  
 
 ## Prerequisites
