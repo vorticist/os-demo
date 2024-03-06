@@ -1,6 +1,8 @@
 # Intro
 
-- Who are we?
+- Who are we? 
+
+ArkusNexus, a leader in software development innovation, this project harnesses their expertise in leveraging cutting-edge technology to enhance product capabilities and drive growth. ArkusNexus specializes in offering comprehensive services including full-stack development, mobile app creation, quality assurance, and artificial intelligence solutions. This initiative underscores their commitment to privacy, security, and efficient technology deployment, demonstrating their capability to deliver sophisticated solutions that cater to the specific needs of businesses seeking to utilize AI technologies in a secure and private infrastructure.
 
 ## Project
 
@@ -401,3 +403,7 @@ Once we add that to our chart we can run `cdk8s synth` and apply the yaml manife
  watch -n 2 kubectl get -n ai-iac services
  ``` 
  Take note of the external IP in the service and paste it in a browser, our demo app should pop up. In it you can input a youtube video link and it will process it using a YOLOv8 model fine tuned to find tacos. 
+
+ ### Closing
+
+As we draw this project to a close, ArkusNexus reaffirms its dedication to leveraging AI technology within frameworks that ensure both security and privacy. Through navigating the complexities of cutting-edge AI integration, we aim to set a precedent for innovation that upholds the integrity of sensitive information. Our gratitude extends to our collaborators and clientele, whose partnership has been invaluable. Together, we look forward to forging ahead in our pursuit of technological advancement and excellence.
