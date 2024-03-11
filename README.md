@@ -6,23 +6,29 @@ ArkusNexus, a leader in software development innovation, this project harnesses 
 
 ## Project
 
-With rapid development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used as a service over the cloud which in some cases may not be desirable or beyond the scope of the project. Sensitive data traveling across the internet may represent a privacy risk. 
+With rapid development of AI technologies, new possibilites are available for developers to create new products leveraging AI. However, most of the tools that are available are designed to be used "as a service" over the cloud which in some cases may not be desirable or beyond the scope of the project (college projects, small office setups, etc.). Sensitive data traveling across the internet may also represent a privacy risk. 
+
+But setting up a AI workflow environment in a more private infrastructure is not excactly easy, the 'as a service' experience abstracts much of what's needed to setup an environment, thankfully this is a topic well covered by the open source community and there is a wide variety of tools and resources that we can use; with this project we want to help developers and researchers understand some of the tools that are needed to setup the infrastructure and setup a workflow to train or serve a model so they can tweak and experiment with their workflows.
 
 But setting up a workflow environment to train or serve an AI model in a more private infrastructure is not excactly as straightforward as setting it up in a 'as a service' environment it requires knowledge about several tools and technologies that are usually abstracted away by cloud providers as an effort to provide a more streamlined user experience, that's why, for this project, we put together a sample workflow environment to help understand some of the moving pieces that are used to setup infrastructure and the necessary tools to train or serve a model. In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
 
 The project leverages Kubernetes to be able to eaisily setup and configure the 3rd party tools needed, but also showcases how a custom app can be quickly integrated into the environment to serve a model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
+
+The code for this project is available at: [Link to repo]
 
 # YOLOv8 model
 
 We will be setting up an environment for a simple use case: train and serve an image recognition model, using YOLOv8 in our case.
 
 Tipically a workflow for image recognition applications looks something along the lines of:
-- We need a dataset to fine tune our model, usually consits of images or videos that will be tagged in order to use in the training and validation processes. The images should be as close as the real case the model will be dealing with and should contain the object to identify.
+
+[Diagram goes here]
+
+- We need a dataset to fine tune our model, usually consits of images or videos that will be tagged in order to use in the training and validation processes. The images should be as close as the real case and should contain the object to identify.
 - We'll need a tool to tag our dataset efectively identifying objects of interests. For this project we're using LabelStudio in our environment since it allows to export datasets in YOLO format.
 - Once the dataset has been pre-processed, it is used to fine tune our model until we reach the desired accuracy. We can use a Jupyter notebook and a python script for this as ultralytics provides a clean interface for both training and serving a model.
 - We can also include a custom app in our environment to serve the model. Ideally, serving the model, should be done in a separate environment than the training env, but for the purposes of this project we bundled everything in a single environment.
 
-[Diagram goes here]
 
 ## The Tools
 This project focuses in showing how to setup the infrastructure for a specific environment used to train or serve an AI model using a few tools that fitted the needs for the proof of concept, but the same principles and techniques can be adopted to fit a wide range of use cases using different tools and models.
@@ -65,6 +71,11 @@ The first thing we'll want to do is to [create a new CDK8S project](https://cdk8
 CDK8S is inspired by [AWS' CDK](https://aws.amazon.com/cdk/), but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a kubernetes cluster accessible via kubectl.
 
 In this project `cdk8s` will help us manage all the different tools and components that we need to add to our environment, but the same environment could be achieved by manually installing all components separately.
+
+Install `cdk8s` with:
+``` bash
+npm install -g cdk8s-cli
+```
 
 The recommended language for cdk8s is Typescript and I recommend that you stick to that, as it is best covered in the documentation, but for this demo we choose to experiment with go:
 ``` bash
