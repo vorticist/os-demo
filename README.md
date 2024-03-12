@@ -123,6 +123,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"example.com/my-demo/imports/k8s"
 	"github.com/arkusnexus/ai-demo/iac/imports/k8s"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
