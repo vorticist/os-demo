@@ -390,13 +390,15 @@ Notice that the deployment definition contains a pod spec, this is a core resour
 
 ``` golang
 	serviceName := fmt.Sprintf("%v-service", appName)
-	port := float64(8080)
+	targetPort := float64(8080)
+	port := float64(80)
 	k8s.NewKubeService(chart, jsii.String(serviceName), &k8s.KubeServiceProps{
 		Metadata: &k8s.ObjectMeta{},
 		Spec: &k8s.ServiceSpec{
 			Ports: &[]*k8s.ServicePort{
 				{
-					Port: &port,
+					Port:       &port,
+					TargetPort: k8s.IntOrString_FromNumber(&targetPort),
 				},
 			},
 			Selector: &labels,
