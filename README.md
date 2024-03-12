@@ -12,7 +12,7 @@ But setting up a AI workflow environment in a more private infrastructure is not
 
 Thankfully this is a topic well covered by the open source community and there is a wide variety of tools and resources that we can use; with this project we want to help developers and researchers understand some of the tools that are needed to setup the infrastructure and setup a workflow to train or serve a model so they can tweak and experiment on their own.
 
-But setting up a workflow environment to train or serve an AI model in a more private infrastructure is not excactly as straightforward as setting it up in a 'as a service' environment it requires knowledge about several tools and technologies that are usually abstracted away by cloud providers as an effort to provide a more streamlined user experience, that's why, for this project, we put together a sample workflow environment to help understand some of the moving pieces that are used to setup infrastructure and the necessary tools to train or serve a model. In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
+In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
 
 The project leverages Kubernetes to be able to eaisily setup and configure the 3rd party tools needed, but also showcases how a custom app can be quickly integrated into the environment to serve a model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
 
@@ -95,7 +95,7 @@ It is also important to run the [cdk8s import command](https://cdk8s.io/docs/lat
 cdk8s import
 ```
 
-Delete every thing from the main.go file until it looks like this:
+Delete everything from the main.go file until it looks like this:
 ``` go
 package main
 
