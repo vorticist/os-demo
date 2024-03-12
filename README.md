@@ -12,7 +12,7 @@ But setting up a AI workflow environment in a more private infrastructure is not
 
 Thankfully this is a topic well covered by the open source community and there is a wide variety of tools and resources that we can use; with this project we want to help developers and researchers understand some of the tools that are needed to setup the infrastructure and setup a workflow to train or serve a model so they can tweak and experiment on their own.
 
-In this case we'll use the example of an environment to train and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
+In this case we'll use the example of an environment to fine-tune and serve an image recognition model using open source tools and technologies in a manner that can be installed in your own private cloud or even in your own hardware on premises.
 
 The project leverages Kubernetes to be able to eaisily setup and configure the 3rd party tools needed, but also showcases how a custom app can be quickly integrated into the environment to serve a model itself. A basic understanding of k8s components is recommended in order to follow along this demo.
 
