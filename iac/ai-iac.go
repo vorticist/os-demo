@@ -54,30 +54,30 @@ func NewAIChart(scope constructs.Construct, id string, props *AIChartProps) cdk8
 		},
 	})
 	/************************** registry auth ********************************/
-	/************************** label-studio  ********************************/
-	cdk8s.NewHelm(chart, jsii.String("label-studio"), &cdk8s.HelmProps{
-		Chart:     jsii.String("heartex/label-studio"),
-		HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
-		Values: &map[string]interface{}{
-			"app": map[string]interface{}{
-				"service": map[string]interface{}{
-					"type": "LoadBalancer",
-				},
-			},
-			"replica": map[string]interface{}{
-				"replicaCount": 1,
-			},
-		},
-	})
-	/************************** label-studio  ********************************/
-	/************************** jupyterhub    ********************************/
-	cdk8s.NewHelm(chart, jsii.String("jupyter-hub"), &cdk8s.HelmProps{
-		Chart:     jsii.String("jupyterhub/jupyterhub"),
-		HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
-		Version:   jsii.String("3.2.1"),
-		Values:    &map[string]interface{}{},
-	})
-	/************************** jupyterhub    ********************************/
+	// /************************** label-studio  ********************************/
+	// cdk8s.NewHelm(chart, jsii.String("label-studio"), &cdk8s.HelmProps{
+	// 	Chart:     jsii.String("heartex/label-studio"),
+	// 	HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
+	// 	Values: &map[string]interface{}{
+	// 		"app": map[string]interface{}{
+	// 			"service": map[string]interface{}{
+	// 				"type": "LoadBalancer",
+	// 			},
+	// 		},
+	// 		"replica": map[string]interface{}{
+	// 			"replicaCount": 1,
+	// 		},
+	// 	},
+	// })
+	// /************************** label-studio  ********************************/
+	// /************************** jupyterhub    ********************************/
+	// cdk8s.NewHelm(chart, jsii.String("jupyter-hub"), &cdk8s.HelmProps{
+	// 	Chart:     jsii.String("jupyterhub/jupyterhub"),
+	// 	HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
+	// 	Version:   jsii.String("3.2.1"),
+	// 	Values:    &map[string]interface{}{},
+	// })
+	// /************************** jupyterhub    ********************************/
 	/************************** arkusnexus    ********************************/
 	labels := map[string]*string{
 		"app": jsii.String("arkusnexus-demo-be"),
@@ -113,13 +113,15 @@ func NewAIChart(scope constructs.Construct, id string, props *AIChartProps) cdk8
 	})
 
 	serviceName := fmt.Sprintf("%v-service", appName)
-	port := float64(8080)
+	targetPort := float64(8080)
+	port := float64(80)
 	k8s.NewKubeService(chart, jsii.String(serviceName), &k8s.KubeServiceProps{
 		Metadata: &k8s.ObjectMeta{},
 		Spec: &k8s.ServiceSpec{
 			Ports: &[]*k8s.ServicePort{
 				{
-					Port: &port,
+					Port:       &port,
+					TargetPort: k8s.IntOrString_FromNumber(&targetPort),
 				},
 			},
 			Selector: &labels,

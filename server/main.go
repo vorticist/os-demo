@@ -32,7 +32,6 @@ type message struct {
 func main() {
 	router := mux.NewRouter()
 
-	router.PathPrefix("/client/").Handler(http.StripPrefix("/client", http.FileServer(http.Dir("./client/"))))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static", http.FileServer(http.Dir("./static/"))))
 	router.HandleFunc("/detect", detectHandler).Methods("GET")
 	router.HandleFunc("/", makeIndexHandler()).Methods("GET")
@@ -44,6 +43,7 @@ func main() {
 func makeIndexHandler() func(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("templates/index.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger.Info("index...")
 		tmpl.Execute(w, "index")
 	}
 }
