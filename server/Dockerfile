@@ -3,7 +3,6 @@ COPY . /server
 WORKDIR /server
 
 RUN go build -o server .
-RUN ls
 
 FROM ultralytics/ultralytics:latest as yolov8
 WORKDIR /server
@@ -12,9 +11,6 @@ COPY --from=builder /server/client ./client
 COPY --from=builder /server/static ./static
 COPY --from=builder /server/templates ./templates
 COPY --from=builder /server/best.pt ./best.pt
-
-RUN ls
-
 
 ENV TZ=US/Pacific
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
