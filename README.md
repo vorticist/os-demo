@@ -165,6 +165,7 @@ func NewAIChart(scope constructs.Construct, id string, props *AIChartProps) cdk8
 		},
 	})
 	/************************** label-studio  ********************************/
+	return chart
 }
 ```
 Make sure to add the helm repo as stated in the prerequisites by executing the following command in the terminal: `helm repo add heartex https://charts.heartex.com/` 
