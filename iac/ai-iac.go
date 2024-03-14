@@ -70,14 +70,14 @@ func NewAIChart(scope constructs.Construct, id string, props *AIChartProps) cdk8
 	// 	},
 	// })
 	// /************************** label-studio  ********************************/
-	// /************************** jupyterhub    ********************************/
+	/************************** jupyterhub    ********************************/
 	// cdk8s.NewHelm(chart, jsii.String("jupyter-hub"), &cdk8s.HelmProps{
 	// 	Chart:     jsii.String("jupyterhub/jupyterhub"),
 	// 	HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
 	// 	Version:   jsii.String("3.2.1"),
 	// 	Values:    &map[string]interface{}{},
 	// })
-	// /************************** jupyterhub    ********************************/
+	/************************** jupyterhub    ********************************/
 	/************************** arkusnexus    ********************************/
 	labels := map[string]*string{
 		"app": jsii.String("arkusnexus-demo-be"),
