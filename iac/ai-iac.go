@@ -1,10 +1,7 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
-	"os"
-
 	"github.com/arkusnexus/ai-demo/iac/imports/k8s"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -29,47 +26,47 @@ func NewAIChart(scope constructs.Construct, id string, props *AIChartProps) cdk8
 	})
 
 	/************************** registry auth ********************************/
-	registrySecretName := "registry-secrets"
-	rawAuth := fmt.Sprintf("%v:%v", os.Getenv("DOCKER_USER"), os.Getenv("DOCKER_PASSWORD"))
-	auth := base64.StdEncoding.EncodeToString([]byte(rawAuth))
-	rawDockercfgjson := fmt.Sprintf(`
-	{
-	  "auths": {
-		"%v": {
-		  "auth": "%v",
-		  "email": "%v"
-		}
-	  }
-	}
-	`, os.Getenv("DOCKER_REGISTRY_SERVER"), auth, os.Getenv("DOCKER_EMAIL"))
-	dockercfgjson := base64.StdEncoding.EncodeToString([]byte(rawDockercfgjson))
-	k8s.NewKubeSecret(chart, &registrySecretName, &k8s.KubeSecretProps{
-		Metadata: &k8s.ObjectMeta{
-			Name:      &registrySecretName,
-			Namespace: &namespace,
-		},
-		Type: jsii.String("kubernetes.io/dockerconfigjson"),
-		Data: &map[string]*string{
-			".dockerconfigjson": &dockercfgjson,
+	//registrySecretName := "registry-secrets"
+	//rawAuth := fmt.Sprintf("%v:%v", os.Getenv("DOCKER_USER"), os.Getenv("DOCKER_PASSWORD"))
+	//auth := base64.StdEncoding.EncodeToString([]byte(rawAuth))
+	//rawDockercfgjson := fmt.Sprintf(`
+	//{
+	//  "auths": {
+	//	"%v": {
+	//	  "auth": "%v",
+	//	  "email": "%v"
+	//	}
+	//  }
+	//}
+	//`, os.Getenv("DOCKER_REGISTRY_SERVER"), auth, os.Getenv("DOCKER_EMAIL"))
+	//dockercfgjson := base64.StdEncoding.EncodeToString([]byte(rawDockercfgjson))
+	//k8s.NewKubeSecret(chart, &registrySecretName, &k8s.KubeSecretProps{
+	//	Metadata: &k8s.ObjectMeta{
+	//		Name:      &registrySecretName,
+	//		Namespace: &namespace,
+	//	},
+	//	Type: jsii.String("kubernetes.io/dockerconfigjson"),
+	//	Data: &map[string]*string{
+	//		".dockerconfigjson": &dockercfgjson,
+	//	},
+	//})
+	/************************** registry auth ********************************/
+	/************************** label-studio  ********************************/
+	cdk8s.NewHelm(chart, jsii.String("label-studio"), &cdk8s.HelmProps{
+		Chart:     jsii.String("heartex/label-studio"),
+		HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
+		Values: &map[string]interface{}{
+			"app": map[string]interface{}{
+				"service": map[string]interface{}{
+					"type": "LoadBalancer",
+				},
+			},
+			"replica": map[string]interface{}{
+				"replicaCount": 1,
+			},
 		},
 	})
-	/************************** registry auth ********************************/
-	// /************************** label-studio  ********************************/
-	// cdk8s.NewHelm(chart, jsii.String("label-studio"), &cdk8s.HelmProps{
-	// 	Chart:     jsii.String("heartex/label-studio"),
-	// 	HelmFlags: &[]*string{jsii.String("--namespace"), jsii.String(namespace)},
-	// 	Values: &map[string]interface{}{
-	// 		"app": map[string]interface{}{
-	// 			"service": map[string]interface{}{
-	// 				"type": "LoadBalancer",
-	// 			},
-	// 		},
-	// 		"replica": map[string]interface{}{
-	// 			"replicaCount": 1,
-	// 		},
-	// 	},
-	// })
-	// /************************** label-studio  ********************************/
+	/************************** label-studio  ********************************/
 	/************************** jupyterhub    ********************************/
 	// cdk8s.NewHelm(chart, jsii.String("jupyter-hub"), &cdk8s.HelmProps{
 	// 	Chart:     jsii.String("jupyterhub/jupyterhub"),
