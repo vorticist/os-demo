@@ -23,9 +23,6 @@ func NewGpuOperatorChart(scope constructs.Construct, id string, props *GpuOperat
 	k8s.NewKubeNamespace(chart, &namespace, &k8s.KubeNamespaceProps{
 		Metadata: &k8s.ObjectMeta{
 			Name: &namespace,
-			Labels: &map[string]*string{
-				"pod-security.kubernetes.io/enforce": jsii.String("privileged"),
-			},
 		},
 	})
 
@@ -36,20 +33,7 @@ func NewGpuOperatorChart(scope constructs.Construct, id string, props *GpuOperat
 			jsii.String("--create-namespace"),
 			jsii.String("--namespace"), jsii.String(namespace),
 		},
-		Version: jsii.String("23.3.2"),
-		Values:  &map[string]interface{}{
-			// "driver": map[string]interface{}{
-			// 	"enabled": true,
-			// },
-			// "mig": map[string]interface{}{
-			// 	"strategy": "mixed",
-			// },
-			// "migManager": map[string]interface{}{
-			// 	"config": map[string]interface{}{
-			// 		"name": "mig-parted-config",
-			// 	},
-			// },
-		},
+		Namespace: jsii.String(namespace),
 	})
 
 	return chart

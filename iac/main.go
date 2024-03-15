@@ -10,7 +10,7 @@ func main() {
 	metallbConfigChart := NewMetallbConfigChart(app, "metallb-config", nil)
 	metallbConfigChart.AddDependency(networkChart)
 
-	gpuOperatorChart := NewGpuOperatorChart(app, "gpu-op-chart", nil)
+	gpuOperatorChart := NewGpuOperatorChart(app, "gpu", nil)
 	gpuOperatorChart.AddDependency(metallbConfigChart)
 
 	aiChart := NewAIChart(app, "ai-iac", nil)
