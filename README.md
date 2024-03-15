@@ -68,9 +68,12 @@ Just like a good manager keeps an eye on the kitchen, Kubernetes constantly moni
   - `kind load docker-image aiarkusnexus/opensource-demo-be:latest`
   - `kubectl apply -f dist/0000-network-setup.k8s.yaml`
   - `kubectl apply -f dist/0001-metallb-config.k8s.yaml`
+  - [![asciicast](https://asciinema.org/a/646988.svg)](https://asciinema.org/a/646988)
 ## Step by Step
 ### CDK8s IaC project setup
-The first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). It will allow us to manage all of our kubernetes infrastructure as code, making it reproduceable and esier to mantain.
+You can checkout the `start-here` branch from this repo and skip ahead to the [Create a chart for our AI infrastructure](#create-chart) section. 
+
+If you want to start from scratch, the first thing we'll want to do is to [create a new CDK8S project](https://cdk8s.io/docs/latest/cli/init/). It will allow us to manage all of our kubernetes infrastructure as code, making it reproduceable and esier to mantain.
 
 CDK8S is inspired by [AWS' CDK](https://aws.amazon.com/cdk/), but was designed for managing infrastructure inside a k8s cluster using code. It is not tied to AWS so it can be used with any other cloud provider or custom hardware as long as there is a kubernetes cluster accessible via kubectl.
 
@@ -110,7 +113,7 @@ func main() {
 }
 
 ```
-### Create a chart for our AI infrastructure
+### <a name="create-chart"></a>A Create a chart for our AI infrastructure
 `cdk8s` uses the concept of charts to bundle up resource management. Basically, you define a set of resources under a cdk8s chart and it will generate a single resources file (yaml) ready to be applied to the cluster.
 
 These charts are different from helm charts, and in fact helm charts can be installed using a cdk8s chart, that's how we will install some of our tools. We'll use Helm Charts to add LabelStudio and JupyterHub to our environment.
