@@ -61,6 +61,7 @@ Just like a good manager keeps an eye on the kitchen, Kubernetes constantly moni
     - MetalLB: `metallb https://metallb.github.io/metallb` 
     - LabelStudio: `heartex https://charts.heartex.com/`
     - JupyterHub: `jupyterhub https://hub.jupyter.org/helm-chart/`
+	- GPU Operator: `nvidia https://helm.ngc.nvidia.com/nvidia`
 - If running on custom hardware outside a cloud provider, the cluster most likely will need to have installed a custom load balancer. K3s comes with it's own load balancer preinstalled, but for this demo we'll be using [MetalLB](https://metallb.universe.tf/installation/#installation-with-helm).
 - Cluster setup:
   - `kind create cluster --config cluster/kind-config.yaml`
@@ -236,7 +237,7 @@ Once the Label Studio pods are running, you can look into the services to get th
 ``` bash
 kubectl get services -A
 ```
-Look for a service named after LabelStudio and take note of its external IP // TODO: use an in-cluster dns service to use custom domain names instead of the raw IPs
+Look for a service named after LabelStudio and take note of its external IP 
 - Image here
 
 Input the URL into a browser and you should be greeted by the LabelStudio login screen. You'll need to create a new user the first time you use LabelStudio. 
@@ -244,6 +245,36 @@ Input the URL into a browser and you should be greeted by the LabelStudio login 
 
 LabelStudio provides versatile data annotation capabilities, enabling efficient labeling of diverse datasets for machine learning projects, with support for various data types including text, image, and audio, along with an intuitive interface for streamlined annotation workflows. It can also export processed datasets in YOLO format which is why we choose it for this project. 
 
+### GPU Operator
+
+A GPU Operator is a Kubernetes (k8s) operator specifically designed to manage and orchestrate GPU resources within a Kubernetes cluster. It automates the deployment, configuration, and lifecycle management of GPU-enabled applications by abstracting the complexities of GPU management from users.
+
+The GPU Operator typically works by extending Kubernetes' capabilities to include GPU-specific resources, such as GPU nodes and device plugins. It ensures that GPU-accelerated workloads are scheduled onto appropriate nodes with GPU resources available, manages GPU device drivers, and handles any necessary configurations or optimizations to enable efficient utilization of GPU resources by applications running in the cluster. Essentially, it simplifies the process of integrating GPU resources into Kubernetes environments, making it easier for developers and data scientists to leverage GPU capabilities for their workloads.
+
+There is a HelmChart to [install the gpu operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html) add it to the chart in the `ai-iac.go` file:
+``` go
+	cdk8s.NewHelm(chart, jsii.String("gpu-operator"), &cdk8s.HelmProps{
+		Chart: jsii.String("nvidia/gpu-operator"),
+		HelmFlags: &[]*string{
+			jsii.String("-n"), jsii.String(namespace),
+			jsii.String("--wait"),
+		},
+		Version: jsii.String("23.3.2"),
+		Values: &map[string]interface{}{
+			"driver": map[string]interface{}{
+				"enabled": true,
+			},
+			"mig": map[string]interface{}{
+				"strategy": "mixed",
+			},
+			"migManager": map[string]interface{}{
+				"config": map[string]interface{}{
+					"nmae": "mig-parted-config",
+				},
+			},
+		},
+	})
+```
 ### Adding Jupyter notebook
 Similarily to Label Studio, we will be using a Helm Chart to add Jupyter Hub to our cluster. Jupyter Hub will allow us to create notebooks in order to train and fine tune our model in a collaborative manner, it will also allow us to import our dataset once we've preprocessed it with Label Studio.
 
