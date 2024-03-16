@@ -52,6 +52,9 @@ In tech terms, Kubernetes is like a powerful system that helps manage and coordi
 
 Just like a good manager keeps an eye on the kitchen, Kubernetes constantly monitors the health of your applications and automatically takes actions to fix things if something goes wrong, like moving containers to healthier servers or starting up new ones if needed. 
 
+#### Helmcharts
+[Helm Charts](https://helm.sh/docs/topics/charts/) simplify the deployment and management of complex applications on Kubernetes, providing pre-configured packages of Kubernetes resources. With Helm Charts, users can efficiently package, share, and deploy applications with ease, streamlining the process of managing Kubernetes applications.
+
 ## Prerequisites
 - [Docker](https://www.docker.com/get-started/)
 - [nodejs](https://nodejs.org/en) & [cdk8s](https://cdk8s.io/docs/latest/cli/installation/) cli
@@ -113,13 +116,32 @@ func main() {
 }
 
 ```
+### GPU Operator
+
+A GPU Operator is a Kubernetes (k8s) operator specifically designed to manage and orchestrate GPU resources within a Kubernetes cluster. It automates the deployment, configuration, and lifecycle management of GPU-enabled applications by abstracting the complexities of GPU management from users.
+
+The GPU Operator typically works by extending Kubernetes' capabilities to include GPU-specific resources, such as GPU nodes and device plugins. It ensures that GPU-accelerated workloads are scheduled onto appropriate nodes with GPU resources available, manages GPU device drivers, and handles any necessary configurations or optimizations to enable efficient utilization of GPU resources by applications running in the cluster. Essentially, it simplifies the process of integrating GPU resources into Kubernetes environments, making it easier for developers and data scientists to leverage GPU capabilities for their workloads.
+
+There is a HelmChart to [install the gpu operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html), but before installing it we need to make some tweaks in our node containers in order to workaround errors related with the gpu setup ([more info]()) the issue seem to be specific to Kind:
+```bash
+docker exec -ti kind-control-plane ln -s /sbin/ldconfig /sbin/ldconfig.real
+docker exec -ti kind-worker ln -s /sbin/ldconfig /sbin/ldconfig.real
+```
+Now we can install the helmchart:
+``` bash
+helm repo add nvidia https://helm.ngc.nvidia.com/nvidia && helm repo update
+```
+
+``` bash
+helm install --wait --generate-name \
+    -n gpu-operator --create-namespace \
+    nvidia/gpu-operator
+```
 ### <a name="create-chart"></a>A Create a chart for our AI infrastructure
 `cdk8s` uses the concept of charts to bundle up resource management. Basically, you define a set of resources under a cdk8s chart and it will generate a single resources file (yaml) ready to be applied to the cluster.
 
 These charts are different from helm charts, and in fact helm charts can be installed using a cdk8s chart, that's how we will install some of our tools. We'll use Helm Charts to add LabelStudio and JupyterHub to our environment.
 
-#### Helmcharts
-[Helm Charts](https://helm.sh/docs/topics/charts/) simplify the deployment and management of complex applications on Kubernetes, providing pre-configured packages of Kubernetes resources. With Helm Charts, users can efficiently package, share, and deploy applications with ease, streamlining the process of managing Kubernetes applications.
 
 Create a new file called `ai-iac.go` and we'll add the first of our tools, LabelStudio:
 ``` go
@@ -240,44 +262,13 @@ Once the Label Studio pods are running, you can look into the services to get th
 ``` bash
 kubectl get services -A
 ```
-Look for a service named after LabelStudio and take note of its external IP 
-- Image here
+In the cluster, look for a service named after LabelStudio and take note of its external IP 
 
 Input the URL into a browser and you should be greeted by the LabelStudio login screen. You'll need to create a new user the first time you use LabelStudio. 
-- Image here
+![LabelStudio landing page](https://raw.githubusercontent.com/vorticist/os-demo/main/images/Screenshot_20240315_000239.png?token=GHSAT0AAAAAACPS22SCFPAOQKAB2PQUVLB6ZPV4Y4A) 
 
 LabelStudio provides versatile data annotation capabilities, enabling efficient labeling of diverse datasets for machine learning projects, with support for various data types including text, image, and audio, along with an intuitive interface for streamlined annotation workflows. It can also export processed datasets in YOLO format which is why we choose it for this project. 
 
-### GPU Operator
-
-A GPU Operator is a Kubernetes (k8s) operator specifically designed to manage and orchestrate GPU resources within a Kubernetes cluster. It automates the deployment, configuration, and lifecycle management of GPU-enabled applications by abstracting the complexities of GPU management from users.
-
-The GPU Operator typically works by extending Kubernetes' capabilities to include GPU-specific resources, such as GPU nodes and device plugins. It ensures that GPU-accelerated workloads are scheduled onto appropriate nodes with GPU resources available, manages GPU device drivers, and handles any necessary configurations or optimizations to enable efficient utilization of GPU resources by applications running in the cluster. Essentially, it simplifies the process of integrating GPU resources into Kubernetes environments, making it easier for developers and data scientists to leverage GPU capabilities for their workloads.
-
-There is a HelmChart to [install the gpu operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html) add it to the chart in the `ai-iac.go` file:
-``` go
-	cdk8s.NewHelm(chart, jsii.String("gpu-operator"), &cdk8s.HelmProps{
-		Chart: jsii.String("nvidia/gpu-operator"),
-		HelmFlags: &[]*string{
-			jsii.String("-n"), jsii.String(namespace),
-			jsii.String("--wait"),
-		},
-		Version: jsii.String("23.3.2"),
-		Values: &map[string]interface{}{
-			"driver": map[string]interface{}{
-				"enabled": true,
-			},
-			"mig": map[string]interface{}{
-				"strategy": "mixed",
-			},
-			"migManager": map[string]interface{}{
-				"config": map[string]interface{}{
-					"nmae": "mig-parted-config",
-				},
-			},
-		},
-	})
-```
 ### Adding Jupyter notebook
 Similarily to Label Studio, we will be using a Helm Chart to add Jupyter Hub to our cluster. Jupyter Hub will allow us to create notebooks in order to train and fine tune our model in a collaborative manner, it will also allow us to import our dataset once we've preprocessed it with Label Studio.
 
@@ -297,7 +288,7 @@ Add the following code after the helm chart for Labels Studio in the `ai-iac.go`
 ```
 If we generate the k8s files again and apply them to the cluster (`cdk8s synth` and `kubectl apply`), we'll notice that it will only add resources related to Jupyter Hub and did not perform any changes to our previously defined resources. This is because Kubernetes applies manifest changes incrementaly, detecting changes directly from the yaml files and only modifying resources that are new or have changes in their definitions.
 
-- Image here
+![Jpyter Hub Landing Page](https://raw.githubusercontent.com/vorticist/os-demo/main/images/Screenshot_20240315_001328.png?token=GHSAT0AAAAAACPS22SCB63R3NC7E2SENJ7UZPV424A)
 
 If we instead destroy our cluster and generate a new one to apply the changes to, we'll see that it will create all of the resources from the beggining.
 
