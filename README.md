@@ -44,6 +44,8 @@ A cornerstone of collaborative computational environments within the Jupyter eco
 ### [Docker](https://www.docker.com)
 Offers standardized containerization for applications, ensuring consistency and portability across diverse environments.
 ### [Kubernetes](https://kubernetes.io/)
+
+![K8s](https://raw.githubusercontent.com/vorticist/os-demo/main/images/Screenshot_20240318_205900.png)
 Powerful container orchestration platform automating deployment, scaling, and management of containerized applications, fostering high availability and scalability in distributed environments for cloud-native architectures
 
 Imagine you're running a big restaurant with lots of chefs cooking different dishes in the kitchen. Each chef needs their own space, ingredients, and utensils to work efficiently. Now, think of Kubernetes as the chef manager who organizes everything behind the scenes to make sure each chef gets what they need and that the dishes are served perfectly every time.
