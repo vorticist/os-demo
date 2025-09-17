@@ -41,6 +41,6 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "dependencies": {
-    "ws": "^8.16.0"
+    "ws": "^8.17.1"
   }
 }
